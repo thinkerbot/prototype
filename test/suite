@@ -1,0 +1,2 @@
+#!/bin/sh
+$PWD/vendor/ts/bin/ts "$@" test/prototype*

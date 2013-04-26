@@ -1,0 +1,5 @@
+/man
+/tmp
+/vendor/ronn
+.DS_Store
+share/comv/*.lock
