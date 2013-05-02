@@ -1,0 +1,7 @@
+#!/bin/bash
+prototype_path="${PROTOTYPE}_PATH"
+export "${prototype_path}"="${!prototype_path:-$(prototype_guess_path "$@")}"
+
+if [ "x${PATH}" = "x${PATH%%${!prototype_path}*}" ]
+then export PATH="${PATH}${!prototype_path:+:}${!prototype_path}"
+fi

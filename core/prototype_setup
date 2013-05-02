@@ -1,0 +1,30 @@
+#!/bin/bash
+
+prototype_system_dir="${PROTOTYPE}_SYSTEM_DIR"
+prototype_global_dir="${PROTOTYPE}_GLOBAL_DIR"
+prototype_local_dir="${PROTOTYPE}_LOCAL_DIR"
+
+export "${prototype_system_dir}"="${!prototype_system_dir:-/etc/$prototype}"
+if [ -e "${!prototype_system_dir}/env" ]
+then . "${!prototype_system_dir}/env"
+fi
+
+export "${prototype_global_dir}"="${!prototype_global_dir:-$HOME/.$prototype}"
+if [ x"${!prototype_global_dir}" != x"${!prototype_system_dir}" ] &&
+   [ -e "${!prototype_global_dir}/env" ]
+then . "${!prototype_global_dir}/env"
+fi
+
+export "${prototype_local_dir}"="${!prototype_local_dir:-$PWD/.$prototype}"
+if [ x"${!prototype_local_dir}" != x"${!prototype_global_dir}" ] &&
+   [ x"${!prototype_local_dir}" != x"${!prototype_system_dir}" ] &&
+   [ -e "${!prototype_local_dir}/env" ]
+then . "${!prototype_local_dir}/env"
+fi
+
+. prototype_setup_home
+. prototype_setup_path \
+"${!prototype_home}"/libexec       "${!prototype_home}"/plugins/*/libexec \
+"${!prototype_local_dir}"/libexec  "${!prototype_local_dir}"/plugins/*/libexec  \
+"${!prototype_global_dir}"/libexec "${!prototype_global_dir}"/plugins/*/libexec \
+"${!prototype_system_dir}"/libexec "${!prototype_system_dir}"/plugins/*/libexec

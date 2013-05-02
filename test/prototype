@@ -1,0 +1,135 @@
+#!/bin/bash
+. test/helper
+
+setup () {
+mkdir -p "$ts_test_dir"
+export PROTOTYPE_PATH="$PWD/test/libexec:$ts_test_dir"
+}
+
+#
+# tests
+#
+
+test_prototype_prints_help () {
+prototype | grep -q "usage: prototype"
+}
+
+test_prototype_h_prints_help () {
+prototype -h | grep -q "usage: prototype"
+}
+
+test_prototype_delegates_to_prototype_command () {
+echo "echo hi" > "$ts_test_dir/prototype-hello"
+chmod +x "$ts_test_dir/prototype-hello"
+prototype hello | assert_output "\
+hi
+"
+}
+
+test_prototype_identifies_unknown_commands () {
+prototype unknown 2>&1 | assert_output "\
+unknown command: prototype-unknown
+"
+}
+
+test_prototype_guesses_home () {
+prototype env | grep PROTOTYPE_HOME | assert_output "\
+PROTOTYPE_HOME=$PWD
+"
+}
+
+test_prototype_guesses_home_when_prototype_is_a_symlink () {
+mkdir -p "$ts_test_dir"
+ln -s "$PWD/bin/prototype" "$ts_test_dir/prototype"
+
+export PATH="$ts_test_dir:$PATH"
+prototype env | grep PROTOTYPE_HOME | assert_output "\
+PROTOTYPE_HOME=$PWD
+"
+}
+
+test_prototype_guesses_home_when_prototype_is_a_chained_symlink () {
+mkdir -p "$ts_test_dir"
+ln -s "$PWD/bin/prototype" "$ts_test_dir/prototype-a"
+ln -s "$ts_test_dir/prototype-a" "$ts_test_dir/prototype"
+
+export PATH="$ts_test_dir:$PATH"
+prototype env | grep PROTOTYPE_HOME | assert_output "\
+PROTOTYPE_HOME=$PWD
+"
+}
+
+test_prototype_guesses_home_when_prototype_is_on_relative_path () {
+export PATH="bin:$PATH"
+prototype env | grep PROTOTYPE_HOME | assert_output "\
+PROTOTYPE_HOME=$PWD
+"
+}
+
+test_prototype_adds_PROTOTYPE_HOME_to_PATH_when_sourced_with_dot () {
+. prototype .
+command -v prototype_exec >/dev/null
+}
+
+test_prototype_adds_PROTOTYPE_PATH_to_PATH () {
+PROTOTYPE_PATH="$ts_test_dir"
+cat > "$ts_test_dir"/prototype-pwd <<CMD
+#!/bin/sh
+exit 0
+CMD
+chmod +x "$ts_test_dir"/prototype-pwd
+prototype pwd
+}
+
+test_prototype_adds_pwd_to_PATH_if_PROTOTYPE_PATH_starts_with_colon () {
+PROTOTYPE_PATH=":/dev/null"
+cd "$ts_test_dir"
+cat > prototype-pwd <<CMD
+#!/bin/sh
+exit 0
+CMD
+chmod +x prototype-pwd
+prototype pwd
+}
+
+#
+# env
+#
+
+test_command_env_is_sourced_prior_to_command () {
+prototype a | assert_a_env
+}
+
+test_command_env_is_sourced_prior_to_nested_command () {
+prototype a b | assert_a_b_env
+}
+
+test_command_env_is_sourced_prior_to_deeply_nested_command () {
+prototype a b c | assert_a_b_c_env
+}
+
+test_command_env_is_setup_prior_to_command () {
+prototype a | grep 'PROTOTYPE_COMMAND' | assert_output "\
+PROTOTYPE_COMMAND=prototype-a
+PROTOTYPE_COMMAND_BASE=a
+PROTOTYPE_COMMAND_PATH=a
+"
+}
+
+test_command_env_is_setup_prior_to_nested_command () {
+prototype a b | grep 'PROTOTYPE_COMMAND' | assert_output "\
+PROTOTYPE_COMMAND=prototype-a_b
+PROTOTYPE_COMMAND_BASE=a_b
+PROTOTYPE_COMMAND_PATH=a/b
+"
+}
+
+test_command_env_is_setup_prior_to_deeply_nested_command () {
+prototype a b c | grep 'PROTOTYPE_COMMAND' | assert_output "\
+PROTOTYPE_COMMAND=prototype-a_b_c
+PROTOTYPE_COMMAND_BASE=a_b_c
+PROTOTYPE_COMMAND_PATH=a/b/c
+"
+}
+
+. ts

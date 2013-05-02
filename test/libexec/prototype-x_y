@@ -1,0 +1,26 @@
+#!/bin/bash
+#############################################################################
+prototype_x_y_usage () {
+printf "%s" "\
+usage: prototype x y [-h]
+
+  Test x-y.  More documentation.
+
+options:
+
+  -h  prints help
+
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  prototype_x_y_usage
+         exit 0 ;;
+    (*)  prototype_x_y_usage | head -n 1
+         exit 2 ;;
+  esac
+done
+#############################################################################
+
+printf "x-y\n"

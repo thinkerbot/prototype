@@ -1,0 +1,71 @@
+#!/bin/bash
+#############################################################################
+prototype_guess_home () {
+  prototype_command="$1"
+  prototype_path="$(command -v ${prototype_command})"
+
+  while [ -h "$prototype_path" ]
+  do
+    prototype_link_list="$(ls -l "$prototype_path" 2>/dev/null)"
+    prototype_path="${prototype_link_list#* -> }"
+  done
+
+  cd "${prototype_path%/*}/.."
+  pwd
+}
+
+if ! command -v prototype_exec >/dev/null 2>&1
+then
+  export PROTOTYPE_HOME=${PROTOTYPE_HOME:-$(prototype_guess_home prototype)}
+  export PATH="${PATH}:${PROTOTYPE_HOME}/core"
+fi
+
+if [ "." = "$1" ]
+then return 1
+fi
+#############################################################################
+prototype_usage () {
+printf "%s" "\
+usage: prototype [-hv] COMMAND ARGS...
+
+  Launches prototype commands.
+
+options:
+
+  -h                          prints help
+  -v                          prints version
+
+"
+}
+
+prototype_version () {
+version="0.0.0"
+reldate="0000-00-00"
+printf "prototype %s (%s)\n" "$version" "$reldate"
+}
+
+while getopts "hv" option
+do
+  case $option in
+    (h)  prototype_usage
+         exit 0 ;;
+    (v)  prototype_version
+         exit 0 ;;
+    (*)  prototype_usage | head -n 2
+         exit 2 ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ $# -eq 0 ]
+then
+  prototype_usage
+  exit 1
+fi
+#############################################################################
+export prototype="prototype"
+export PROTOTYPE="PROTOTYPE"
+
+. prototype_setup_path "$PROTOTYPE_HOME/libexec"
+. prototype_exec_reset
+. prototype_exec

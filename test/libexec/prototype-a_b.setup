@@ -1,0 +1,35 @@
+#!/bin/bash
+prototype_setup_a_b_usage () {
+printf "%s" "\
+usage: prototype setup a b [OPTIONS] [COMMAND...]
+
+  Setup a_b.
+
+options:
+
+  -h          prints help
+
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  prototype_setup_a_b_usage
+         exit 0 ;;
+    (*)  prototype_setup_a_b_usage | head -n 2
+         exit 2 ;;
+  esac
+done
+shift $(($OPTIND - 1))
+######################################
+export PROTOTYPE_TEST_A_B=a_b.setup
+export PROTOTYPE_TEST_A_B_C_ENV=a_b.setup
+export PROTOTYPE_TEST_A_B_C=a_b.setup
+
+if [ $# -gt 0 ]
+then
+  prototype_setup "$@"
+else
+  mkdir -p "${PROTOTYPE_SETUP_DIR}"
+  prototype_test_env > "${PROTOTYPE_SETUP_DIR}/b"
+fi

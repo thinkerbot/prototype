@@ -1,0 +1,33 @@
+#!/bin/bash
+#############################################################################
+prototype_a_usage () {
+printf "%s" "\
+usage: prototype a [-h]
+
+  Test a.  More documentation.
+
+options:
+
+  -h  prints help
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  prototype_a_usage
+         exit 0 ;;
+    (*)  prototype_a_usage | head -n 1
+         exit 2 ;;
+  esac
+done
+#############################################################################
+export PROTOTYPE_TEST_A=a
+export PROTOTYPE_TEST_A_B_ENV=a
+export PROTOTYPE_TEST_A_B=a
+export PROTOTYPE_TEST_A_B_C_ENV=a
+export PROTOTYPE_TEST_A_B_C=a
+
+if [ $# -eq 0 ]
+then prototype_test_env
+else prototype_exec "$@"
+fi

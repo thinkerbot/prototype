@@ -1,0 +1,16 @@
+#!/bin/bash
+for command in "$@"
+do
+  base=${command%.*}
+  extname=${command#$base}
+
+  export PROTOTYPE_COMMAND_PATH="${PROTOTYPE_COMMAND_PATH}${PROTOTYPE_COMMAND_PATH:+/}${base}"
+  export PROTOTYPE_COMMAND_BASE="${PROTOTYPE_COMMAND_BASE}${PROTOTYPE_COMMAND_BASE:+_}${base}"
+  export PROTOTYPE_COMMAND="${prototype}-${PROTOTYPE_COMMAND_BASE}${extname}"
+
+  unset command base extname
+
+  if command -v "${prototype}-${PROTOTYPE_COMMAND_BASE}.env" >/dev/null 2>&1
+  then . "${prototype}-${PROTOTYPE_COMMAND_BASE}.env"
+  fi
+done

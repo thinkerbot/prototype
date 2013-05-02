@@ -1,0 +1,11 @@
+#!/bin/bash
+
+export PROTOTYPE_TEST_A_B=a_b.completions
+export PROTOTYPE_TEST_A_B_C_ENV=a_b.completions
+export PROTOTYPE_TEST_A_B_C=a_b.completions
+
+# magic word to print env (for tests only)
+if [ env = "$1" ]
+then prototype_test_env
+else prototype_complete "$@"
+fi

@@ -1,0 +1,29 @@
+#!/bin/bash
+#############################################################################
+prototype_x_usage () {
+printf "%s" "\
+usage: prototype x [-h]
+
+  Test x.  More documentation.
+
+options:
+
+  -h  prints help
+
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  prototype_x_usage
+         exit 0 ;;
+    (*)  prototype_x_usage | head -n 1
+         exit 2 ;;
+  esac
+done
+#############################################################################
+
+if [ $# -eq 0 ]
+then printf "x\n"
+else prototype_exec "$@"
+fi
