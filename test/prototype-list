@@ -1,0 +1,175 @@
+#!/bin/bash
+. test/helper
+
+setup () {
+export PROTOTYPE_PATH="$PWD/test/libexec"
+export PROTOTYPE_LIST_FILE="$ts_test_dir/list"
+}
+
+assert_filtered_output () {
+  grep -Ev '^ *(completions|env|help|list|setup)' |
+  assert_output "$@"
+}
+
+#
+# tests
+#
+
+test_prototype_list_lists_commands_along_PROTOTYPE_PATH_with_first_line_of_help () {
+prototype list | assert_filtered_output "\
+  a               Test a.
+  x               Test x.
+  xx              Test xx.
+  y               Test y.
+  z               Test z.
+"
+}
+
+#
+# mode tests
+#
+
+test_prototype_list_a_lists_all_commands () {
+prototype list -q -a | assert_filtered_output "\
+a
+a.completions
+a.env
+a.setup
+x
+xx
+y
+z
+"
+}
+
+test_prototype_list_a_works_with_filters () {
+prototype list -q -a a | assert_filtered_output "\
+b
+b.completions
+b.env
+b.setup
+"
+}
+
+test_prototype_list_c_lists_commands () {
+prototype list -q -c | assert_filtered_output "\
+a
+x
+xx
+y
+z
+"
+}
+
+test_prototype_list_m_lists_completions_commands () {
+prototype list -q -m | assert_filtered_output "\
+a.completions
+"
+}
+
+test_prototype_list_e_lists_env_commands () {
+prototype list -q -e | assert_filtered_output "\
+a.env
+"
+}
+
+test_prototype_list_s_lists_setup_commands () {
+prototype list -q -s | assert_filtered_output "\
+a.setup
+"
+}
+
+test_prototype_list_modes_are_additive () {
+prototype list -q -sec | assert_filtered_output "\
+a
+a.env
+a.setup
+x
+xx
+y
+z
+"
+}
+
+
+#
+# -n tests
+#
+
+test_prototype_list_n_lists_child_commands () {
+prototype list -q -n | assert_filtered_output "\
+a
+a b
+a b c
+x
+x y
+x z
+xx
+xx yy
+xx zz
+y
+z
+"
+}
+
+test_prototype_list_n_filters_child_commands () {
+prototype list -q -n a | assert_filtered_output "\
+b
+b c
+"
+}
+
+test_prototype_list_n_filters_child_commands_ambiguous_prefix () {
+prototype list -q -n x | assert_filtered_output "\
+y
+z
+"
+}
+
+test_prototype_list_n_works_with_modes_and_filters () {
+prototype list -q -na a | assert_filtered_output "\
+b
+b.completions
+b.env
+b.setup
+b c
+b c.completions
+b c.env
+b c.setup
+"
+}
+
+#
+# -N tests
+#
+
+test_prototype_list_N_lists_parent_commands () {
+prototype list -q -N | assert_filtered_output "\
+a
+a b
+x
+xx
+"
+}
+
+test_prototype_list_N_filters_parent_commands () {
+prototype list -q -N a | assert_filtered_output "\
+b
+"
+}
+
+#
+# -q test
+#
+
+test_prototype_list_q_does_not_print_summaries () {
+prototype list -q | assert_filtered_output "\
+a
+x
+xx
+y
+z
+"
+}
+
+. ts

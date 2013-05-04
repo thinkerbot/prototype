@@ -1,0 +1,85 @@
+#!/bin/bash
+#############################################################################
+prototype_list_usage () {
+printf "%s" "\
+usage: comv list [-acehmnNqs] [COMMAND...]
+
+  List available commands.
+
+options:
+
+  -a          list all
+  -c          list commands (default)
+  -e          list env commands
+  -h          prints help
+  -m          list completions commands
+  -n          list nest children
+  -N          list nest parents
+  -r          regenerate summaries
+  -q          quiet (omit summaries)
+  -s          list setup commands
+
+"
+}
+extnames=()
+args=""
+while [ $OPTIND -le $# ]
+do
+  if getopts "acehmnNqs" option
+  then
+    case $option in
+      (a) extnames+=(".*") ;;
+      (c) extnames+=("") ;;
+      (e) extnames+=("env") ;;
+      (h) prototype_list_usage
+          exit 0 ;;
+      (m) extnames+=("completions") ;;
+      (n) : ;;
+      (N) : ;;
+      (q) : ;;
+      (s) extnames+=("setup") ;;
+      (*) prototype_list_usage | head -n 1
+          exit 2 ;;
+    esac
+  else
+    args="$args \"\${$OPTIND}\"" 
+    OPTIND=$(($OPTIND + 1))
+  fi
+done
+eval set -- "$args"
+
+# commands by default
+if [ 0 -eq ${#extnames[@]} ]
+then extnames+=("")
+fi
+
+#############################################################################
+IFS=: read -a paths <<<"$PATH"
+printf -v command_path '%s_' "$@"
+printf -v extname_pattern '%s|' "${extnames[@]}"
+
+find "${paths[@]}" -name "${prototype}-${command_path%_}*" |
+awk -v "prefix=${prototype}-" '
+BEGIN { FS="_"; OFS=" "; }
+{
+  sub(/.*\//, "", $1)
+  sub(prefix, "", $1)
+  print ": " $0
+}
+' |
+
+# pick segment of command
+cut -d " " -f $(($# + 2)) |
+
+# filter by type
+awk -F "." '
+{
+  if (NF > 1) { extname=$NF }
+  else { extname="" }
+  print "." extname " " $0
+}
+' |
+grep -E "^\.(${extname_pattern%|}) " |
+cut -d " " -f 2 -s |
+grep . |
+sort -u
