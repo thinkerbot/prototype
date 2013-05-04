@@ -21,7 +21,10 @@ then
 fi
 
 if [ "." = "$1" ]
-then return 1
+then
+  export prototype="${2:-${0##*/}}"
+  export PROTOTYPE="${3:-$(tr [:lower:] [:upper:] <<<"$prototype")}"
+  return 1
 fi
 #############################################################################
 prototype_usage () {

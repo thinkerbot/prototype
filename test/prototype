@@ -66,9 +66,42 @@ PROTOTYPE_HOME=$PWD
 "
 }
 
+#
+# . prototype .
+#
+
 test_prototype_adds_PROTOTYPE_HOME_to_PATH_when_sourced_with_dot () {
 . prototype .
 command -v prototype_exec >/dev/null
+}
+
+test_prototype_exports_prototype_and_PROTOTYPE_when_sourced_with_dot () {
+. prototype . abc XYZ
+env | grep -i prototype= | sort | assert_output "\
+PROTOTYPE=XYZ
+prototype=abc
+"
+}
+
+test_prototype_guesses_PROTOTYPE_as_upcase_prototype_when_sourced_with_dot () {
+. prototype . abc
+env | grep -i prototype= | sort | assert_output "\
+PROTOTYPE=ABC
+prototype=abc
+"
+}
+
+test_prototype_guesses_prototype_according_to_calling_program_when_sourced_with_dot () {
+cat > "$ts_test_dir"/example <<CMD
+#!/bin/bash
+. prototype .
+env
+CMD
+chmod +x "$ts_test_dir"/example
+"$ts_test_dir"/example | grep -i prototype= | sort | assert_output "\
+PROTOTYPE=EXAMPLE
+prototype=example
+"
 }
 
 test_prototype_adds_PROTOTYPE_PATH_to_PATH () {
@@ -80,6 +113,10 @@ CMD
 chmod +x "$ts_test_dir"/prototype-pwd
 prototype pwd
 }
+
+#
+# PROTOTYPE_PATH
+#
 
 test_prototype_adds_pwd_to_PATH_if_PROTOTYPE_PATH_starts_with_colon () {
 PROTOTYPE_PATH=":/dev/null"
