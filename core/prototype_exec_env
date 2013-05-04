@@ -10,6 +10,10 @@ do
 
   unset command base extname
 
+  export "${PROTOTYPE}_COMMAND_PATH"="$PROTOTYPE_COMMAND_PATH"
+  export "${PROTOTYPE}_COMMAND_BASE"="$PROTOTYPE_COMMAND_BASE"
+  export "${PROTOTYPE}_COMMAND"="$PROTOTYPE_COMMAND"
+
   if command -v "${prototype}-${PROTOTYPE_COMMAND_BASE}.env" >/dev/null 2>&1
   then . "${prototype}-${PROTOTYPE_COMMAND_BASE}.env"
   fi
