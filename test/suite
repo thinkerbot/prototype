@@ -1,2 +1,2 @@
 #!/bin/sh
-$PWD/vendor/ts/bin/ts "$@" test/prototype*
+$PWD/vendor/ts/bin/ts "$@" test/prototype* examples/sub/test/sub*

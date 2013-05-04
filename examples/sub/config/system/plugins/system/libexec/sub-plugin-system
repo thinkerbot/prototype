@@ -1,0 +1,3 @@
+#!/bin/sh
+printf "plugin system\n"
+exit 0

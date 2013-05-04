@@ -1,0 +1,3 @@
+#!/bin/sh
+printf "local (global)\n"
+exit 1

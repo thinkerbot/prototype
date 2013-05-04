@@ -1,0 +1,31 @@
+#!/bin/bash
+#############################################################################
+sub_a_b_usage () {
+printf "%s" "\
+usage: sub a b [-h]
+
+  Test a-b.  More documentation.
+
+options:
+
+  -h  prints help
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  sub_a_b_usage
+         exit 0 ;;
+    (*)  sub_a_b_usage | head -n 1
+         exit 2 ;;
+  esac
+done
+#############################################################################
+export SUB_TEST_A_B=a_b
+export SUB_TEST_A_B_C_ENV=a_b
+export SUB_TEST_A_B_C=a_b
+
+if [ $# -eq 0 ]
+then sub_test_env
+else prototype_exec "$@"
+fi

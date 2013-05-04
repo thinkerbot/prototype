@@ -1,0 +1,38 @@
+#!/bin/bash
+#############################################################################
+. prototype .
+. prototype_setup
+
+#############################################################################
+sub_usage () {
+printf "%s" "\
+usage: sub [-h] COMMAND ARGS...
+
+  Launches sub commands.
+
+options:
+
+  -h          prints help
+
+"
+}
+while getopts "h" option
+do
+  case $option in
+    (h)  sub_usage
+         exit 0 ;;
+    (*)  sub_usage | head -n 2
+         exit 2 ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if [ $# -eq 0 ]
+then
+  sub_usage
+  exit 1
+fi
+#############################################################################
+
+. prototype_exec_reset
+. prototype_exec

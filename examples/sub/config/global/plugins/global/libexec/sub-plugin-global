@@ -1,0 +1,3 @@
+#!/bin/sh
+printf "plugin global\n"
+exit 0

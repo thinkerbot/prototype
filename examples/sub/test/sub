@@ -1,0 +1,199 @@
+#!/bin/bash
+. examples/sub/test/helper
+
+setup () {
+mkdir -p "$ts_test_dir"
+export SUB_PATH="$PROJECT_DIR/libexec:$ts_test_dir"
+}
+
+#
+# tests
+#
+
+test_sub_prints_help () {
+sub | grep -q "usage: sub"
+}
+
+test_sub_h_prints_help () {
+sub -h | grep -q "usage: sub"
+}
+
+test_sub_delegates_to_sub_command () {
+echo "echo hi" > "$ts_test_dir/sub-hello"
+chmod +x "$ts_test_dir/sub-hello"
+sub hello | assert_output "\
+hi
+"
+}
+
+test_sub_identifies_unknown_commands () {
+sub unknown 2>&1 | assert_output "\
+unknown command: sub-unknown
+"
+}
+
+test_sub_guesses_home () {
+sub env | grep SUB_HOME | assert_output "\
+SUB_HOME=$PROJECT_DIR
+"
+}
+
+test_sub_guesses_home_when_sub_is_a_symlink () {
+mkdir -p "$ts_test_dir"
+ln -s "$PROJECT_DIR/bin/sub" "$ts_test_dir/sub"
+
+export PATH="$ts_test_dir:$ORIG_PATH"
+sub env | grep SUB_HOME | assert_output "\
+SUB_HOME=$PROJECT_DIR
+"
+}
+
+test_sub_guesses_home_when_sub_is_a_chained_symlink () {
+mkdir -p "$ts_test_dir"
+ln -s "$PROJECT_DIR/bin/sub" "$ts_test_dir/sub-a"
+ln -s "$ts_test_dir/sub-a" "$ts_test_dir/sub"
+
+export PATH="$ts_test_dir:$ORIG_PATH"
+sub env | grep SUB_HOME | assert_output "\
+SUB_HOME=$PROJECT_DIR
+"
+}
+
+test_sub_guesses_home_when_sub_is_on_relative_path () {
+export PATH="examples/sub/bin:$ORIG_PATH"
+sub env | grep SUB_HOME | assert_output "\
+SUB_HOME=$PROJECT_DIR
+"
+}
+
+test_sub_guesses_SUB_PATH_to_detect_libexec_commands_under_sub_dirs () {
+unset SUB_PATH
+export SUB_SYSTEM_DIR="$PROJECT_DIR/config/system"
+export SUB_GLOBAL_DIR="$PROJECT_DIR/config/global"
+export SUB_LOCAL_DIR="$PROJECT_DIR/config/local"
+
+# the fixture files are designed so that if any bin is not detected,
+# or if they are detected in the wrong priority, then this will fail
+(sub system && sub global && sub local)
+}
+
+test_sub_guesses_SUB_PATH_to_detect_plugin_commands_under_sub_dirs () {
+unset SUB_PATH
+export SUB_SYSTEM_DIR="$PROJECT_DIR/config/system"
+export SUB_GLOBAL_DIR="$PROJECT_DIR/config/global"
+export SUB_LOCAL_DIR="$PROJECT_DIR/config/local"
+
+# the fixture files are designed so that if any bin is not detected,
+# or if they are detected in the wrong priority, then this will fail
+(sub plugin-system && sub plugin-global && sub plugin-local)
+}
+
+test_sub_does_not_guess_SUB_PATH_to_detect_commands_in_pwd () {
+unset SUB_PATH
+cd "$ts_test_dir"
+touch sub-pwd
+chmod +x sub-pwd
+! sub pwd
+}
+
+test_sub_adds_pwd_to_PATH_if_SUB_PATH_starts_with_colon () {
+SUB_PATH=":/dev/null"
+cd "$ts_test_dir"
+cat > sub-pwd <<CMD
+#!/bin/sh
+exit 0
+CMD
+chmod +x sub-pwd
+sub pwd
+}
+
+test_sub_handles_config_paths_with_spaces_when_guessing_SUB_PATH () {
+unset SUB_PATH
+export SUB_LOCAL_DIR="$ts_test_dir/a b/c"
+
+mkdir -p "$SUB_LOCAL_DIR/libexec"
+cat > "$SUB_LOCAL_DIR"/libexec/sub-with-spaces <<CMD
+#!/bin/sh
+exit 0
+CMD
+chmod +x "$SUB_LOCAL_DIR"/libexec/sub-with-spaces
+
+sub with-spaces
+}
+
+test_sub_handles_plugins_with_spaces_when_guessing_SUB_PATH () {
+unset SUB_PATH
+export SUB_LOCAL_DIR="$ts_test_dir"
+plugin_dir="$SUB_LOCAL_DIR/plugins/path with space/libexec"
+
+mkdir -p "$plugin_dir"
+cat > "$plugin_dir"/sub-with-spaces <<CMD
+#!/bin/sh
+exit 0
+CMD
+chmod +x "$plugin_dir"/sub-with-spaces
+
+sub with-spaces
+}
+
+test_sub_does_not_add_duplicates_to_SUB_PATH () {
+unset SUB_PATH
+export SUB_SYSTEM_DIR="$ts_test_dir"
+export SUB_GLOBAL_DIR="$ts_test_dir"
+export SUB_LOCAL_DIR="$ts_test_dir"
+mkdir -p "$ts_test_dir/libexec"
+mkdir -p "$ts_test_dir/plugins/plugin/libexec"
+
+sub env | grep 'SUB_PATH=' | assert_output "\
+SUB_PATH=$PROJECT_DIR/libexec:$ts_test_dir/libexec:$ts_test_dir/plugins/plugin/libexec
+"
+}
+
+#
+# env
+#
+
+test_sub_sources_system_global_local_env_files_if_present () {
+export SUB_SYSTEM_DIR="$PROJECT_DIR/config/system"
+export SUB_GLOBAL_DIR="$PROJECT_DIR/config/global"
+export SUB_LOCAL_DIR="$PROJECT_DIR/config/local"
+
+sub env | grep SUB_TEST | sort | assert_output "\
+SUB_TEST_GLOBAL=global
+SUB_TEST_LOCAL=local
+SUB_TEST_SYSTEM=system
+"
+}
+
+test_sub_does_not_double_source_env_files_if_system_global_local_dirs_overlap () {
+export SUB_SYSTEM_DIR="$ts_test_dir"
+export SUB_GLOBAL_DIR="$ts_test_dir"
+export SUB_LOCAL_DIR="$ts_test_dir"
+mkdir -p "$ts_test_dir"
+
+cat > "$ts_test_dir/env" <<"DOC"
+if [ "true" = "$SUB_ENV_LOADED" ]
+then exit 1
+else export SUB_ENV_LOADED=true
+fi
+DOC
+
+unset SUB_ENV_LOADED
+sub env | grep SUB_ENV_LOADED | assert_output "\
+SUB_ENV_LOADED=true
+"
+}
+
+test_command_env_is_sourced_prior_to_command () {
+sub a | assert_a_env
+}
+
+test_command_env_is_sourced_prior_to_nested_command () {
+sub a b | assert_a_b_env
+}
+
+test_command_env_is_sourced_prior_to_deeply_nested_command () {
+sub a b c | assert_a_b_c_env
+}
+
+. ts

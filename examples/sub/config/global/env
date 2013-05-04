@@ -1,0 +1,2 @@
+export SUB_TEST_GLOBAL=global
+export SUB_TEST_LOCAL=global

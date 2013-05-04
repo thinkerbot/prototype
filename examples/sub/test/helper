@@ -1,0 +1,54 @@
+# Clear any incoming sub variables/functions and blank config dirs
+unset $(env | sed -n -e '
+  /^SUB_/s/=.*//p
+  /^sub_/s/=.*//p
+')
+export SUB_SYSTEM_DIR=/dev/null
+export SUB_GLOBAL_DIR=/dev/null
+export SUB_LOCAL_DIR=/dev/null
+
+# Setup test paths
+export PROJECT_DIR="$PWD/examples/sub"
+export PATH="$PWD/vendor/ts/bin:$PWD/bin:$PATH"
+export ORIG_PATH="$PATH"
+export PATH="$PROJECT_DIR/bin:$PATH"
+
+# For sorting
+export LC_ALL=C
+
+# Helpers for testing env inheritance
+assert_a_env () {
+ext=${1:-}
+grep SUB_TEST | tr -d "'" | assert_output "\
+SUB_TEST_A=a$ext
+SUB_TEST_A_B=a$ext
+SUB_TEST_A_B_C=a$ext
+SUB_TEST_A_B_C_ENV=a$ext
+SUB_TEST_A_B_ENV=a$ext
+SUB_TEST_A_ENV=a.env
+"
+}
+
+assert_a_b_env () {
+ext=${1:-}
+grep SUB_TEST | tr -d "'" | assert_output "\
+SUB_TEST_A=a$ext
+SUB_TEST_A_B=a_b$ext
+SUB_TEST_A_B_C=a_b$ext
+SUB_TEST_A_B_C_ENV=a_b$ext
+SUB_TEST_A_B_ENV=a_b.env
+SUB_TEST_A_ENV=a.env
+"
+}
+
+assert_a_b_c_env () {
+ext=${1:-}
+grep SUB_TEST | tr -d "'" | assert_output "\
+SUB_TEST_A=a$ext
+SUB_TEST_A_B=a_b$ext
+SUB_TEST_A_B_C=a_b_c$ext
+SUB_TEST_A_B_C_ENV=a_b_c.env
+SUB_TEST_A_B_ENV=a_b.env
+SUB_TEST_A_ENV=a.env
+"
+}

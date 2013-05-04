@@ -1,0 +1,3 @@
+#!/bin/sh
+printf "plugin local\n"
+exit 0

@@ -1,0 +1,3 @@
+#!/bin/sh
+printf "local (system)\n"
+exit 1
