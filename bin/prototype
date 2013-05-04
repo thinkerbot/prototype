@@ -25,6 +25,9 @@ then
   export prototype="${2:-${0##*/}}"
   export PROTOTYPE="${3:-$(tr [:lower:] [:upper:] <<<"$prototype")}"
   return 1
+else
+  export prototype="prototype"
+  export PROTOTYPE="PROTOTYPE"
 fi
 #############################################################################
 prototype_usage () {
@@ -66,8 +69,6 @@ then
   exit 1
 fi
 #############################################################################
-export prototype="prototype"
-export PROTOTYPE="PROTOTYPE"
 
 . prototype_setup_path "$PROTOTYPE_HOME/libexec"
 . prototype_exec_reset
