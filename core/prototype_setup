@@ -3,6 +3,7 @@
 prototype_system_dir="${PROTOTYPE}_SYSTEM_DIR"
 prototype_global_dir="${PROTOTYPE}_GLOBAL_DIR"
 prototype_local_dir="${PROTOTYPE}_LOCAL_DIR"
+prototype_work_dir="${PROTOTYPE}_WORK_DIR"
 
 export "${prototype_system_dir}"="${!prototype_system_dir:-/etc/$prototype}"
 if [ -e "${!prototype_system_dir}/env" ]
@@ -15,7 +16,26 @@ if [ x"${!prototype_global_dir}" != x"${!prototype_system_dir}" ] &&
 then . "${!prototype_global_dir}/env"
 fi
 
-export "${prototype_local_dir}"="${!prototype_local_dir:-$PWD/.$prototype}"
+if [ -z "${!prototype_work_dir}" ]
+then
+  current="${PWD%/}"
+  while [ -n "${current}" ]
+  do
+    if [ -e "${current}/.$prototype" ]
+    then break
+    else current="${current%/*}"
+    fi
+  done
+
+  if [ x"${current}/.$prototype" = x"${!prototype_global_dir}" ] ||
+     [ x"${current}/.$prototype" = x"${!prototype_system_dir}" ] 
+  then current=""
+  fi
+
+  export "${prototype_work_dir}"="${current:-$PWD}"
+fi
+
+export "${prototype_local_dir}"="${!prototype_local_dir:-${!prototype_work_dir%/}/.$prototype}"
 if [ x"${!prototype_local_dir}" != x"${!prototype_global_dir}" ] &&
    [ x"${!prototype_local_dir}" != x"${!prototype_system_dir}" ] &&
    [ -e "${!prototype_local_dir}/env" ]
