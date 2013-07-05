@@ -12,7 +12,7 @@ fi
 
 if command -v "${PROTOTYPE_COMMAND}" >/dev/null 2>&1
 then
-  "${PROTOTYPE_COMMAND}" "$@"
+  exec "${PROTOTYPE_COMMAND}" "$@"
 else
   printf "unknown command: %s\n" "${PROTOTYPE_COMMAND}" >&2
   exit 1
