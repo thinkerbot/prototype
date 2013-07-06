@@ -129,13 +129,13 @@ z
 test_prototype_list_n_works_with_modes_and_filters () {
 prototype list -q -na a | assert_filtered_output "\
 b
-b.completions
-b.env
-b.setup
 b c
 b c.completions
 b c.env
 b c.setup
+b.completions
+b.env
+b.setup
 "
 }
 
