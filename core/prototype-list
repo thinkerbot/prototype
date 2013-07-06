@@ -21,6 +21,7 @@ options:
 
 "
 }
+filter_parents=true
 extnames=()
 args=""
 while [ $OPTIND -le $# ]
@@ -34,7 +35,7 @@ do
       (h) prototype_list_usage
           exit 0 ;;
       (m) extnames+=("completions") ;;
-      (n) : ;;
+      (n) filter_parents=false ;;
       (N) : ;;
       (q) : ;;
       (s) extnames+=("setup") ;;
@@ -68,8 +69,10 @@ BEGIN { FS="_"; OFS=" "; }
 }
 ' |
 
-# pick segment of command
-cut -d " " -f $(($# + 2)) |
+if [ "true" = "$filter_parents" ]
+then cut -d " " -f $(($# + 2))
+else cut -d " " -f $(($# + 2))-
+fi |
 
 # filter by type
 awk -F "." '
@@ -80,6 +83,5 @@ awk -F "." '
 }
 ' |
 grep -E "^\.(${extname_pattern%|}) " |
-cut -d " " -f 2 -s |
-grep . |
+sed -ne 's/^[^ ]* //' -e '/[^ ]/p' |
 sort -u
