@@ -1,0 +1,37 @@
+#!/bin/bash
+
+prototype_global_env="${PROTOTYPE}_GLOBAL_ENV"
+prototype_local_env="${PROTOTYPE}_LOCAL_ENV"
+prototype_work_dir="${PROTOTYPE}_WORK_DIR"
+prototype_var_dir="${PROTOTYPE}_VAR_DIR"
+
+export "${prototype_global_env}"="${!prototype_global_env:-$HOME/.${prototype}.env}"
+if [ -e "${!prototype_global_env}" ]
+then . "${!prototype_global_env}"
+fi
+
+if [ -n "${!prototype_work_dir}" ]
+then
+  export "${prototype_work_dir}"
+else
+  current="${PWD%/}"
+  while [ -n "${current}" ]
+  do
+    prototype_env="${current}/.$prototype"
+    if [ -e "${prototype_env}" ]
+    then break
+    else current="${current%/*}"
+    fi
+  done
+  export "${prototype_work_dir}"="${current:-$PWD}"
+fi
+
+export "${prototype_local_env}"="${!prototype_local_env:-${!prototype_work_dir%/}/.$prototype}"
+if [ -e "${!prototype_local_env}" ]
+then . "${!prototype_local_env}"
+fi
+
+export "${prototype_var_dir}"="${!prototype_var_dir:-/var/$prototype}"
+
+. prototype_setup_home
+. prototype_setup_path "${!prototype_home}"/libexec
