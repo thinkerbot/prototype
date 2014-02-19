@@ -68,7 +68,7 @@ do
   path_index=$(($path_index + 1))
 done
 
-find "${paths[@]}" -perm -u+x -name "${prototype}-${command_path%_}*" |
+find "${paths[@]}" -maxdepth 1 -perm -u+x -name "${prototype}-${command_path%_}*" |
 sed -e 's|.*/||' |
 awk -v "prefix=${prototype}-" -v "head=${1}" '
 BEGIN { FS="_"; OFS=" "; }

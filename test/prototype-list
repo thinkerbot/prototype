@@ -39,6 +39,15 @@ prototype list 2>&1 | grep -q 'nonexecutable'
 [ $? -ne 0 ]
 }
 
+test_prototype_list_does_not_descend_into_directories () {
+mkdir -p "$ts_test_dir/dir"
+touch "$ts_test_dir/dir/prototype-indir"
+chmod +x "$ts_test_dir/dir/prototype-indir"
+export PROTOTYPE_PATH="$ts_test_dir"
+prototype list | grep -q 'indir'
+[ $? -ne 0 ]
+}
+
 #
 # mode tests
 #
