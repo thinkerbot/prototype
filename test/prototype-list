@@ -31,6 +31,14 @@ prototype list 2>&1 | grep -q 'No such file or directory'
 [ $? -ne 0 ]
 }
 
+test_prototype_list_ignores_non_executable_files () {
+mkdir -p "$ts_test_dir"
+touch "$ts_test_dir/prototype-nonexecutable"
+export PROTOTYPE_PATH="$ts_test_dir"
+prototype list 2>&1 | grep -q 'nonexecutable'
+[ $? -ne 0 ]
+}
+
 #
 # mode tests
 #
