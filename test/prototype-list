@@ -25,6 +25,12 @@ prototype list | assert_filtered_output "\
 "
 }
 
+test_prototype_list_ignores_unreadable_dirs_without_error () {
+export PROTOTYPE_PATH="$PWD/non_existent_dir"
+prototype list 2>&1 | grep -q 'No such file or directory'
+[ $? -ne 0 ]
+}
+
 #
 # mode tests
 #
